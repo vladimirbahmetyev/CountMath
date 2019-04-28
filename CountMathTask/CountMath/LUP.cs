@@ -171,11 +171,9 @@ namespace CountMath
             var numberOfMax = -1;
             for (var i = numberOfColoumn; i < _matrix.Length; i++)
             {
-                if (Math.Abs(_matrix[i][numberOfColoumn]) > max)
-                {
-                    numberOfMax = i;
-                    max = Math.Abs(_matrix[i][numberOfColoumn]);
-                }
+                if (!(Math.Abs(_matrix[i][numberOfColoumn]) > max)) continue;
+                numberOfMax = i;
+                max = Math.Abs(_matrix[i][numberOfColoumn]);
             }
             if (numberOfMax == -1)
                 throw new InvalidOperationException("Матрица имеет нулевой определитель");

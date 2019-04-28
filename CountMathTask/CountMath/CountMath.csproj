@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="GaussZel.cs" />
     <Compile Include="LUP.cs" />
+    <Compile Include="Newton.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Yakobi.cs" />
