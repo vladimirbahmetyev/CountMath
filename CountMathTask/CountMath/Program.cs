@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Linq.Expressions;
+using System.Diagnostics;
 
 namespace CountMath
 {
-    static class Program
+    public static class Program
     {
         public static void Main()
         {
@@ -23,91 +23,52 @@ namespace CountMath
             
             var newtonTest = new Newton(funcSystem);
 
-            var testSol = newtonTest.GetSolutionWithAccuracy(startVector, 1e-6);            
+            var timer = new Stopwatch();
+            timer.Start();
+            newtonTest.GetSolutionWithAccuracySuperModified(startVector, 1e-6, 4);
+            timer.Stop();
+            Console.WriteLine(newtonTest.CountOfIterationInLastSolution);
+            Console.WriteLine(timer.ElapsedMilliseconds);
         }
 
-        //static double[][] MatrixMult(double[][] first, double[][] second)
-        //{
-        //    double[][] result = new double[first.Length][];
-        //    for (int i = 0; i < first.Length; i++)
-        //        result[i] = new double[first.Length];
+        private static double FuncFirst(double[] x) =>
+                    -(Math.Cos(x[0] * x[1]) - Math.Exp(-3 * x[2]) + x[3] * Math.Pow(x[4], 2) - x[5] - Math.Sinh(2 * x[7]) * x[8] + 2 * x[9] + 2.0004339741653854440);
 
-        //    for (int i = 0; i < first.Length; i++)
-        //        for (int j = 0; j < first.Length; j++)
-        //        {
-        //            double temple = 0;
-        //            for (int k = 0; k < first.Length; k++)
-        //            {
-        //                temple += first[i][k] * second[k][j];
-        //            }
-        //            result[i][j] = temple;
-        //        }
-        //    return result;
-        //}
-        //static void printMatrix(double[][] matrix)
-        //{
-        //    foreach (var row in matrix)
-        //    {
-        //        foreach (var value in row)
-        //            Console.Write(value.ToString("0.000") + " ");
-        //        Console.WriteLine();
-        //    }
-        //}
-        
-        
-        public static double FuncFirst(double[] xVector) =>        
-            Math.Cos(xVector[0] * xVector[1]) - Math.Exp(-3 * xVector[2]) + xVector[3] * xVector[4] * xVector[4] -
-                   xVector[5] - Math.Sinh(2 * xVector[7]) * xVector[8] + 2 * xVector[9]  + 2.0004339741653854440;
+        private static double FuncSecond(double[] x) =>
+                    -(Math.Sin(x[0] * x[1]) + x[2] * x[8] * x[6] - Math.Exp(-x[9] + x[5]) + 3 * Math.Pow(x[4], 2) - x[5] * (x[7] + 1) + 10.886272036407019994);
 
-        public static double FuncSecond(double[] xVector) =>
-            Math.Sin(xVector[0] * xVector[1]) + xVector[2] * xVector[6] * xVector[8] -
-            Math.Exp(-xVector[9] + xVector[5])
-            + 3 * xVector[4] * xVector[4] - xVector[5] * (xVector[7] + 1) + 10.886272036407019994;
+        private static double FuncThird(double[] x) =>
+                    -(x[0] - x[1] + x[2] - x[3] + x[4] - x[5] + x[6] - x[7] + x[8] - x[9] - 3.1361904761904761904);
 
-        public static double FuncThird(double[] xVector) =>
-            xVector[0] - xVector[1] + xVector[2] - xVector[3] + xVector[4] - xVector[5] + xVector[6] - xVector[7] +
-            xVector[8] - xVector[9] - 3.1361904761904761904;
+        private static double FuncFourth(double[] x) =>
+                    -(2 * Math.Cos(-x[8] + x[3]) + x[4] / (x[2] + x[0]) - Math.Sin(x[1] * x[1]) + Math.Pow(Math.Cos(x[6] * x[9]), 2) - x[7] - 0.1707472705022304757);
 
-        public static double FuncFourth(double[] xVector) =>
-            2 * Math.Cos(-xVector[8] + xVector[3]) + xVector[4] / (xVector[2] + xVector[0]) -
-            Math.Sin(xVector[1] * xVector[1])
-            + Math.Cos(xVector[6] * xVector[9]) * Math.Cos(xVector[6] * xVector[9]) - xVector[7] -  0.170747270502230475;
+        private static double FuncFifth(double[] x) =>
+                    -(Math.Sin(x[4]) + 2 * x[7] * (x[2] + x[0]) - Math.Exp(-x[6] * (-x[9] + x[5])) + 2 * Math.Cos(x[1]) - 1 / (x[3] - x[8]) - 0.368589627310127786);
 
-        public static double FuncFifth(double[] xVector) =>
-            Math.Sin(xVector[4]) + 2 * xVector[7] * (xVector[2] + xVector[0]) -
-            Math.Exp(-xVector[6] * (-xVector[9]) + xVector[5])
-            + 2 * Math.Cos(xVector[1]) - 1 / (xVector[3] - xVector[8]) -  0.368589627310127786;
+        private static double FuncSixth(double[] x) =>
+                    -(Math.Exp(x[0] - x[3] - x[8]) + x[4] * x[4] / x[7] + 0.5 * Math.Cos(3 * x[9] * x[1]) - x[5] * x[2] + 2.049108601677187511);
 
-        public static double FuncSixth(double[] xVector) =>
-            Math.Exp(xVector[0] - xVector[3] - xVector[9]) + xVector[4] * xVector[4] / xVector[7] +
-            Math.Cos(3 * xVector[9] * xVector[1]) / 2 - xVector[5] * xVector[2] + 2.049108601677187511;
+        private static double FuncSeventh(double[] x) =>
+                    -x[1] * x[1] * x[1] * x[6] - (-Math.Sin(x[9] / x[4] + x[7]) + (x[0] - x[5]) * Math.Cos(x[3]) + x[2] - 0.738043007620279801);
 
-        public static double FuncSeventh(double[] xVector) =>
-            xVector[1] * xVector[1] * xVector[1] * xVector[6] - Math.Sin(xVector[9] / xVector[4] + xVector[7]) +
-            (xVector[0] - xVector[5]) *
-            Math.Sin(xVector[3]) + xVector[2] -  0.738043007620279801;
+        private static double FuncEighth(double[] x) =>
+                    -(x[4] * Math.Pow(x[0] - 2 * x[5], 2) - 2 * Math.Sin(-x[8] + x[2]) + 1.5 * x[3] - Math.Exp(x[1] * x[6] + x[9]) + 3.566832198969380904);
 
-        public static double FuncEighth(double[] xVector) =>
-            xVector[4] * (xVector[0] - xVector[5] * 2) * (xVector[0] - xVector[5] * 2) -
-            2 * Math.Sin(-xVector[8] + xVector[2]) +
-            1.5 * xVector[3] - Math.Exp(xVector[1] * xVector[6] + xVector[9]) + 3.566832198969380904;
+        private static double FuncNinth(double[] x) =>
+                    -(7 / x[5] + Math.Exp(x[4] + x[3]) - 2 * x[1] * x[7] * x[9] * x[6] + 3 * x[8] - 3 * x[0] - 8.439473450838325749);
 
-        public static double FuncNinth(double[] xVector) =>
-            7 / xVector[5] + Math.Exp(xVector[4] + xVector[3]) - 2 * xVector[1] * xVector[7] * xVector[9] * xVector[6] +
-            3 * xVector[8] - 3 * xVector[0] -  8.439473450838325749;
-
-        public static double FuncTenth(double[] xVector) =>
-            xVector[9] * xVector[0] + xVector[8] * xVector[1] - xVector[7] * xVector[2] +
-            Math.Sin(xVector[3] + xVector[4] + xVector[5]) * xVector[6] - 0.7823809523809523809;
+        private static double FuncTenth(double[] x) =>
+                    -(x[9] * x[0] + x[8] * x[1] - x[7] * x[2] + Math.Sin(x[3] + x[4] + x[5]) * x[6] - 0.7823809523809523809);
 
     }
 
 
-    class MatrixGen
+    public class MatrixGen
     {
         private readonly int _size;
-        private Random _random;
-        private double _q;
+        private readonly Random _random;
+        private readonly double _q;
         public MatrixGen(int inputSize, double q)
         {
             _size = inputSize;
