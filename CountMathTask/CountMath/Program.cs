@@ -25,8 +25,14 @@ namespace CountMath
 
             var timer = new Stopwatch();
             timer.Start();
-            newtonTest.GetSolutionWithAccuracySuperModified(startVector, 1e-6, 4);
+            var testSol = newtonTest.GetSolutionWithAccuracyHybrid(startVector, 1e-6, 2);
             timer.Stop();
+
+            for (var i = 0; i < 10; i++)
+            {
+                Console.WriteLine(funcSystem[i](testSol));
+            }
+            
             Console.WriteLine(newtonTest.CountOfIterationInLastSolution);
             Console.WriteLine(timer.ElapsedMilliseconds);
         }

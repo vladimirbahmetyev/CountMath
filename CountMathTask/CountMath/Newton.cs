@@ -46,16 +46,13 @@ namespace CountMath
                 _prevSolution[i] = _currentSolution[i];
             }
 
-            var jacobi = new double[_funcSystem.Length][];
+            var jacobi = CountJacobi();
+            
             var templeB = new double[_funcSystem.Length];
             
             for (var i = 0; i < _funcSystem.Length; i++)
             {
-                 jacobi[i] = new double[_funcSystem.Length];
-                 for (var j = 0; j < _funcSystem.Length; j++)
-                    jacobi[i][j] = GetPartialDerivativeInPoint(_funcSystem[i], _currentSolution, j);
-                 
-                 templeB[i] = -_funcSystem[i](_currentSolution);
+                templeB[i] = -_funcSystem[i](_currentSolution);
             }
             
             var lupHelper = new Lup(jacobi);
@@ -76,15 +73,8 @@ namespace CountMath
             {
                 _currentSolution[i] = startVector[i];
             }
-            
-            var jacobi = new double[_funcSystem.Length][];
-            
-            for (var i = 0; i < _funcSystem.Length; i++)
-            {
-                jacobi[i] = new double[_funcSystem.Length];
-                for (var j = 0; j < _funcSystem.Length; j++)
-                    jacobi[i][j] = GetPartialDerivativeInPoint(_funcSystem[i], _currentSolution, j);
-            }
+
+            var jacobi = CountJacobi();
 
             var lupHelper = new Lup(jacobi);
 
@@ -118,6 +108,7 @@ namespace CountMath
 
             CountOfIterationInLastSolution++;
         }
+        
         public double[] GetSolutionWithAccuracySuperModified(double[] startVector, double accuracy, int iterationTrigger)
         {
             
@@ -138,14 +129,7 @@ namespace CountMath
                 }
                 else
                 {
-                    var jacobi = new double[_funcSystem.Length][];
-            
-                    for (var i = 0; i < _funcSystem.Length; i++)
-                    {
-                        jacobi[i] = new double[_funcSystem.Length];
-                        for (var j = 0; j < _funcSystem.Length; j++)
-                            jacobi[i][j] = GetPartialDerivativeInPoint(_funcSystem[i], _currentSolution, j);
-                    }
+                    var jacobi = CountJacobi();
 
                     var lupHelper = new Lup(jacobi);
                     
@@ -159,6 +143,33 @@ namespace CountMath
 
             return _currentSolution;
         }
+
+
+        public double[] GetSolutionWithAccuracyHybrid(double[] startVector, double accuracy, int iterationTrigger)
+        {
+            for (var i = 0; i < _funcSystem.Length; i++)
+            {
+                _currentSolution[i] = startVector[i];
+            }
+            
+            var jacobi = CountJacobi();
+            var lupHelper = new Lup(jacobi);
+
+            do
+            {
+                if (CountOfIterationInLastSolution % iterationTrigger == 0 && CountOfIterationInLastSolution != 0)
+                {
+                    jacobi = CountJacobi();
+                    lupHelper = new Lup(jacobi);
+                }
+                
+                IterateModified(lupHelper);
+                
+            } while (CountCurrentAccuracy() > accuracy);
+
+            return _currentSolution;
+        }
+        
         private double CountCurrentAccuracy() =>
             _prevSolution.Select((t, i) => Math.Abs(_currentSolution[i] - t)).Concat(new[] {double.MinValue}).Max();
         
@@ -171,6 +182,20 @@ namespace CountMath
             }
 
             return (func(deltaPoint) - func(point)) / Eps;
+        }
+
+        private double[][] CountJacobi()
+        {
+            var jacobi = new double[_funcSystem.Length][];
+            
+            for (var i = 0; i < _funcSystem.Length; i++)
+            {
+                jacobi[i] = new double[_funcSystem.Length];
+                for (var j = 0; j < _funcSystem.Length; j++)
+                    jacobi[i][j] = GetPartialDerivativeInPoint(_funcSystem[i], _currentSolution, j);
+            }
+
+            return jacobi;
         }
     }
 }
