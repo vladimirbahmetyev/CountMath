@@ -43,7 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CQF.cs" />
     <Compile Include="GaussZel.cs" />
+    <Compile Include="IQF.cs" />
     <Compile Include="LUP.cs" />
     <Compile Include="Newton.cs" />
     <Compile Include="Program.cs" />
