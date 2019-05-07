@@ -7,14 +7,23 @@ namespace CountMath
         public static void Main()
         {
             
+            var baseGqf = new Gqf(MainFunc);
+//            var testVal = testGqf.CalcIntegral(1.5, 3.3);
+//            Console.WriteLine(testVal);
+            
             var baseIqf = new Iqf(MainFunc);
             
-            var testCqf = new Cqf(baseIqf);
-            
-            var optimalStepsCount = testCqf.CalcOptStep(1.5, 2.4, 1e-6);
-            var testRich = testCqf.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6, optimalStepsCount);
-            
-            Console.WriteLine(testRich);
+            var testCqf = new Cqf(baseIqf, baseGqf);
+            for (int i = 0; i < 20; i++)
+            {
+                var kek = testCqf.CalcIntegralGqf(1.5, 3.3, i + 1);
+                Console.WriteLine(kek);
+            }
+
+//            var optimalStepsCount = testCqf.CalcOptStep(1.5, 2.4, 1e-6);
+//            var testRich = testCqf.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6, optimalStepsCount);
+//            
+//            Console.WriteLine(testRich);
         }
 
         private static double MainFunc(double x) =>
