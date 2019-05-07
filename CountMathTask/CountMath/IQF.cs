@@ -7,18 +7,23 @@ namespace CountMath
     public class Iqf
     {
         private readonly Func<double, double> _mainFunction;
-        private readonly Func<double, double> _weightFunction;
-        private readonly double _paramA;
-        private readonly double _paramB;
 
-        private const int DefaultStep = 100000;
+        private Func<double, double>[] defaultIntegralsFunction;
 
-        public Iqf(Func<double, double> mainFunction, Func<double, double> weightFunction, double paramA, double paramB)
+        public Iqf(Func<double, double> mainFunction)
         {
+            defaultIntegralsFunction = new Func<double, double>[3];
+            
+            defaultIntegralsFunction[0] = x =>
+                1.5 * Math.Pow(x - 1.5, 2.0 / 3);
+            
+            defaultIntegralsFunction[1] = x =>
+                0.6 * Math.Pow(x - 1.5, 2.0 / 3)*(x + 2.25);
+
+            defaultIntegralsFunction[2] = x =>
+                0.375 * Math.Pow(x - 1.5, 2.0 / 3)*(x * x + 1.8 * x + 4.05);
+
             _mainFunction = mainFunction;
-            _weightFunction = weightFunction;
-            _paramA = paramA;
-            _paramB = paramB;
         }
 
         public double CalcIntegral(double start, double end, double[] nodes)
@@ -26,11 +31,10 @@ namespace CountMath
             var a = GetIqf(start, end, nodes);
             
             var result = nodes.Select((t, i) => 
-            a[i] * _mainFunction(t)).Sum();
+                a[i] * _mainFunction(t)).Sum();
 
             return result;
         }
-
 
         public double[] GetIqf(double start, double end, double[] nodes)
         {
@@ -56,52 +60,8 @@ namespace CountMath
 
             return result;
         }
-        
-        
-        private double CalcWeightFunctionMoment(double start, double end, int step, int numberOfMoment) => 
-            CalcIntegral((x) =>(_weightFunction(x) * Math.Pow(x, numberOfMoment)), start, end, step);
 
-        private double CalcWeightFunctionMomentAnalytics(double start, double end, int numberOfMoment)
-        {
-            switch (numberOfMoment)
-            {
-                case 0:
-                {
-                    return FuncMomentZero(end) - FuncMomentZero(start);
-                }
-                
-                case 1:
-                {
-                    return FuncMomentFirst(end) - FuncMomentFirst(start);
-                }
-                
-                case 2:
-                {
-                    return FuncMomentSecond(end) - FuncMomentSecond(start);
-                }
-                default:
-                    throw new ArgumentException("Не существует такого момента");
-            }
-        }
-
-        private static double CalcIntegral(Func<double, double> function, double start, double end, int step)
-        {
-            var h = (end - start) / step;
-            var result = 0.0;
-            for (var i = 1; i <= step; i++)
-            {
-                result += function(start + (i - 1.0/2) * h);
-            }
-            return result * h;
-        }
-
-        private double FuncMomentZero(double x) =>
-            1.5 * Math.Pow(x - 1.5, 2.0 / 3);
-        
-        private double FuncMomentFirst(double x) =>
-            0.6 * Math.Pow(x - 1.5, 2.0 / 3)*(x + 2.25);
-        
-        private double FuncMomentSecond(double x) =>
-            0.375 * Math.Pow(x - 1.5, 2.0 / 3)*(x * x + 1.8 * x + 4.05);
+        private double CalcWeightFunctionMomentAnalytics(double start, double end, int numberOfMoment) =>
+            defaultIntegralsFunction[numberOfMoment](end) - defaultIntegralsFunction[numberOfMoment](start);
     }
 }

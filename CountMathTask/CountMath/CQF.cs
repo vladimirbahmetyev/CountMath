@@ -6,117 +6,122 @@ namespace CountMath
     {
         private readonly Iqf _iqfHelper;
 
-        public Cqf(Func<double, double> mainFunction, Func<double, double> weightFunction, double paramA, double paramB)
+        public Cqf(Iqf baseIqf)
         {
-            _iqfHelper = new Iqf(mainFunction, weightFunction, paramA, paramB);
+            _iqfHelper = baseIqf;
         }
 
         public double CalcIntegral(double start, double end, int parts)
         {
-            var result = 0.0;
-            var partStep = (end - start) / parts;
+            var integralValue = 0.0;
+            
+            var sizeOfStep = (end - start) / parts;
+            
             for (var i = 0; i < parts; i++)
             {
                 var nodes = new double[3];
                 
-                nodes[0] = start + partStep * i;
-                nodes[1] = start + partStep * (i + 1.0 / 2);
-                nodes[2] = start + partStep * (i + 1);
+                nodes[0] = start + sizeOfStep * i;
+                nodes[1] = start + sizeOfStep * (i + 1.0 / 2);
+                nodes[2] = start + sizeOfStep * (i + 1);
 
-                result += _iqfHelper.CalcIntegral(nodes[0], nodes[2], nodes); 
+                integralValue += _iqfHelper.CalcIntegral(nodes[0], nodes[2], nodes); 
             }
-            return result;
+            return integralValue;
         }
         
-        public double CalcIntegralWithAccuracy(double start, double end, double accuracy)
+        public double CalcIntegralWithAccuracy(double start, double end, double accuracy, int startCountOfSteps)
         {
-            var parts = 1;
-            var resultList = new double[1];
-            resultList[0] = CalcIntegral(start, end, parts);
-            var currentAccuracy = CalcAccuracyRichardson(resultList, start, end);
+            var steps = startCountOfSteps;
+            var arrayWithSteps = new[] {startCountOfSteps};
+            var integralValues = new double[1];
+            integralValues[0] = CalcIntegral(start, end, steps);
+            
+            var currentAccuracy = CalcAccuracyRichardson(integralValues, arrayWithSteps, start, end);
             
             while (currentAccuracy > accuracy)
             {
-                var newValue = CalcIntegral(start, end, ++parts);
+                var newIntegralValue = CalcIntegral(start, end, ++steps);
+
+                integralValues = AddValueToArray(integralValues, newIntegralValue);
+
+                arrayWithSteps = AddValueToArray(arrayWithSteps, steps);
                 
-                resultList = AddValueToArray(resultList, newValue);
-                
-                currentAccuracy = CalcAccuracyRichardson(resultList, start, end);
-                
-                if(resultList.Length > 3)
-                    Console.WriteLine(CalcOptStep(resultList, accuracy));
+                currentAccuracy = CalcAccuracyRichardson(integralValues,arrayWithSteps, start, end);
             }
-            //Console.WriteLine(resultList.Length);
             
-            return resultList[resultList.Length - 1];
+            return integralValues[integralValues.Length - 1];
         }
         
-        private double CalcAccuracyRichardson(double[] integralsValue, double start, double end)
+        private double CalcAccuracyRichardson(double[] integralsValues, int[] steps, double start, double end)
         {
-            if (integralsValue.Length == 1)
+            if (integralsValues.Length == 1)
                 return double.MaxValue;
             
-            var m = (int)CalcEytkin(integralsValue);
-            var countOfSteps = 1;
-            var lesRich = new double[integralsValue.Length][];
-            for (var i = 0; i < integralsValue.Length; i++)
+            var eytkinConstant = CalcEytkin(integralsValues, steps);
+            var lesRichardson = new double[integralsValues.Length][];
+            
+            for (var i = 0; i < integralsValues.Length; i++)
             {
-                lesRich[i] = new double[integralsValue.Length];
-                for (var j = 0; j < integralsValue.Length - 1; j++)
+                lesRichardson[i] = new double[integralsValues.Length];
+                
+                for (var j = 0; j < integralsValues.Length - 1; j++)
                 {
-                    lesRich[i][j] = Math.Pow((end - start) / countOfSteps, m + j);
+                    lesRichardson[i][j] = Math.Pow((end - start) / steps[i], eytkinConstant + j);
                 }
 
-                lesRich[i][integralsValue.Length - 1] = -1;
-
-                countOfSteps++;
+                lesRichardson[i][integralsValues.Length - 1] = -1;
             }
 
-            var bVector = new double[integralsValue.Length];
-            for (var i = 0; i < integralsValue.Length; i++)
-            {
-                bVector[i] = -integralsValue[i];
-            }
+            var negativeIntegralValues = new double[integralsValues.Length];
             
-            var lupHelper = new Lup(lesRich);
+            for (var i = 0; i < integralsValues.Length; i++)
+                negativeIntegralValues[i] = -integralsValues[i];
             
-            var solution = lupHelper.LesSol(bVector);
             
-            return integralsValue[integralsValue.Length - 1] - solution[integralsValue.Length - 1];
+            var lupHelper = new Lup(lesRichardson);
+            
+            var expectedIntegralValue = lupHelper.LesSol(negativeIntegralValues);
+            
+            return integralsValues[integralsValues.Length - 1] - expectedIntegralValue[integralsValues.Length - 1];
         }
 
-        private double[] AddValueToArray(double[] array, double newValue)
+        private T[] AddValueToArray<T>(T[] array, T newValue)
         {
-            var newArray = new double[array.Length + 1];
-            for (int i = 0; i < array.Length; i++)
-            {
+            var newArray = new T[array.Length + 1];
+            
+            for (var i = 0; i < array.Length; i++)
                 newArray[i] = array[i];
-            }
+            
             newArray[array.Length] = newValue;
+            
             return newArray;
         }
 
-        private double CalcEytkin(double[] integralsResult)
+        private int CalcEytkin(double[] integralsResult, int[] steps)
         {
             if (integralsResult.Length < 3)
-                return 2;
+                return 1;
+            
             var sh1 = integralsResult[integralsResult.Length - 3];
             var sh2 = integralsResult[integralsResult.Length - 2];
             var sh3 = integralsResult[integralsResult.Length - 1];
-            double l = (double)integralsResult.Length / (integralsResult.Length - 1);
             
-            var m = -Math.Log(Math.Abs((sh3 - sh2) / (sh2 - sh1))) / Math.Log(l);
+            var stepsRelation = (double)steps[steps.Length - 1] / steps[steps.Length - 2];
+            
+            var eytkinConstant = -Math.Log(Math.Abs((sh3 - sh2) / (sh2 - sh1))) / Math.Log(stepsRelation);
 
-            return m;
+            return (int)eytkinConstant;
         }
-
-        private int CalcOptStep(double[] integralsResult, double accuracy)
+        //Default grid with 1, 2 end 4 steps
+        
+        public int CalcOptStep(double start, double end, double accuracy)
         {
-            var m = CalcEytkin(integralsResult);
-            var l = (double)integralsResult.Length / (integralsResult.Length - 1);
-            var sh1 = integralsResult[integralsResult.Length - 2];
-            var sh2 = integralsResult[integralsResult.Length - 1];
-            return (int) (integralsResult.Length * Math.Pow(accuracy*(1 - Math.Pow(l, -m))/Math.Abs(sh2 - sh1), 1/m));
+            var defaultIntegralsValue = new[] {CalcIntegral(start, end, 1), CalcIntegral(start, end, 2), CalcIntegral(start, end, 4)};
+            var eytkinConstant = CalcEytkin(defaultIntegralsValue, new []{1,2,4});
+            var defaultStepsRelation = 2;
+            var optimalStepSize = 1.0/2 * Math.Pow(accuracy * (1 - Math.Pow(defaultStepsRelation, -eytkinConstant)) / Math.Abs(defaultIntegralsValue[2] - defaultIntegralsValue[1]), (double)1 / eytkinConstant);
+            return (int)(1.0 / optimalStepSize);
         }
     }
 }

@@ -8,29 +8,18 @@ namespace CountMath
         
         public static void Main()
         {
-
             
-//            var testGqf = new Gqf(MainFunc, FixedWeightFunc, 1.0/3, 0);
-//            testGqf.GetGqf(1.5, 3.3);
-//            var testCqf = new Cqf(MainFunc, FixedWeightFunc, 1.0/3, 0);
-//            
-//            Console.WriteLine(testCqf.CalcIntegralWithAccuracy(1.5,3.3,1e-6));
-
-            //Console.WriteLine(testCqf.CalcIntegral(1.5,3.3,2));
-        
-            var testIntegral = new Cqf(MainFunc, FixedWeightFunc, 1.0/3, 0);
-            var testNode = new[] {1.5, 2.4, 3.3};
+            var baseIqf = new Iqf(MainFunc);
             
-            //var result = testIntegral.CalcIntegral(1.5, 3.3, 60);
+            var testCqf = new Cqf(baseIqf);
 
-            var testRich = testIntegral.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6);
+            //var testNode = new[] {1.5, 2.4, 3.3};
             
-//            var controlValue = CalcIntegral(x => MainFunc(x) * WeightFunc(x, 1.0 / 3, 0, 1.5, 3.3), 1.5, 3.3,
-//                100000000);
-//            
+            var optimalStepsCount = testCqf.CalcOptStep(1.5, 2.4, 1e-6);
+            var testRich = testCqf.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6, optimalStepsCount);
+            
             Console.WriteLine(testRich);
-//            Console.WriteLine(controlValue);
-//            Console.WriteLine("Погрешность = " + Math.Abs(-testRich + controlValue));
+
         }
 
         private static double FixedWeightFunc(double x) =>
