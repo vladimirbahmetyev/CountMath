@@ -58,7 +58,7 @@ namespace CountMath
             if (integralsValues.Length == 1)
                 return double.MaxValue;
             
-            var eytkinConstant = CalcEytkin(integralsValues, steps);
+            var aitkinConstant = CalcAitkinConstant(integralsValues, steps);
             var lesRichardson = new double[integralsValues.Length][];
             
             for (var i = 0; i < integralsValues.Length; i++)
@@ -67,7 +67,7 @@ namespace CountMath
                 
                 for (var j = 0; j < integralsValues.Length - 1; j++)
                 {
-                    lesRichardson[i][j] = Math.Pow((end - start) / steps[i], eytkinConstant + j);
+                    lesRichardson[i][j] = Math.Pow((end - start) / steps[i], aitkinConstant + j);
                 }
 
                 lesRichardson[i][integralsValues.Length - 1] = -1;
@@ -98,7 +98,7 @@ namespace CountMath
             return newArray;
         }
 
-        private int CalcEytkin(double[] integralsResult, int[] steps)
+        private int CalcAitkinConstant(double[] integralsResult, int[] steps)
         {
             if (integralsResult.Length < 3)
                 return 1;
@@ -109,18 +109,18 @@ namespace CountMath
             
             var stepsRelation = (double)steps[steps.Length - 1] / steps[steps.Length - 2];
             
-            var eytkinConstant = -Math.Log(Math.Abs((sh3 - sh2) / (sh2 - sh1))) / Math.Log(stepsRelation);
+            var aitkinConstant = -Math.Log(Math.Abs((sh3 - sh2) / (sh2 - sh1))) / Math.Log(stepsRelation);
 
-            return (int)eytkinConstant;
+            return (int)aitkinConstant;
         }
-        //Default grid with 1, 2 end 4 steps
         
+        //Default grid with 1, 2 end 4 steps
         public int CalcOptStep(double start, double end, double accuracy)
         {
             var defaultIntegralsValue = new[] {CalcIntegral(start, end, 1), CalcIntegral(start, end, 2), CalcIntegral(start, end, 4)};
-            var eytkinConstant = CalcEytkin(defaultIntegralsValue, new []{1,2,4});
+            var aitkinConstant = CalcAitkinConstant(defaultIntegralsValue, new []{1,2,4});
             var defaultStepsRelation = 2;
-            var optimalStepSize = 1.0/2 * Math.Pow(accuracy * (1 - Math.Pow(defaultStepsRelation, -eytkinConstant)) / Math.Abs(defaultIntegralsValue[2] - defaultIntegralsValue[1]), (double)1 / eytkinConstant);
+            var optimalStepSize = 1.0/2 * Math.Pow(accuracy * (1 - Math.Pow(defaultStepsRelation, -aitkinConstant)) / Math.Abs(defaultIntegralsValue[2] - defaultIntegralsValue[1]), (double)1 / aitkinConstant);
             return (int)(1.0 / optimalStepSize);
         }
     }

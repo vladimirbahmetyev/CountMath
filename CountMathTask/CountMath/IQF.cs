@@ -28,12 +28,12 @@ namespace CountMath
 
         public double CalcIntegral(double start, double end, double[] nodes)
         {
-            var a = GetIqf(start, end, nodes);
+            var iqfСoefficients = GetIqf(start, end, nodes);
             
-            var result = nodes.Select((t, i) => 
-                a[i] * _mainFunction(t)).Sum();
+            var integralValue = nodes.Select((t, i) => 
+                iqfСoefficients[i] * _mainFunction(t)).Sum();
 
-            return result;
+            return integralValue;
         }
 
         public double[] GetIqf(double start, double end, double[] nodes)

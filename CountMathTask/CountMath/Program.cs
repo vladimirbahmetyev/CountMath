@@ -1,46 +1,24 @@
 ﻿using System;
-using System.Runtime.Remoting.Messaging;
 
 namespace CountMath
 {
     public static class Program
     {
-        
         public static void Main()
         {
             
             var baseIqf = new Iqf(MainFunc);
             
             var testCqf = new Cqf(baseIqf);
-
-            //var testNode = new[] {1.5, 2.4, 3.3};
             
             var optimalStepsCount = testCqf.CalcOptStep(1.5, 2.4, 1e-6);
             var testRich = testCqf.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6, optimalStepsCount);
             
             Console.WriteLine(testRich);
-
         }
-
-        private static double FixedWeightFunc(double x) =>
-            WeightFunc(x, 1.0/3 , 0, 1.5, 3.3);
-        
-        private static double WeightFunc(double x, double a, double b, double start, double end) =>
-            Math.Pow(x - start, -a) * Math.Pow(end - x, -b);
 
         private static double MainFunc(double x) =>
             2 * Math.Cos(2.5 * x) * Math.Exp(x / 3) + 4 * Math.Sin(3.5 * x) * Math.Exp(-3 * x) + x;
-        
-        private static double CalcIntegral(Func<double, double> function, double start, double end, long step)
-        {
-            var h = (end - start) / step;
-            var result = 0.0;
-            for (var i = 1; i <= step; i++)
-            {
-                result += function(start + (i - 1.0/2) * h);
-            }
-            return result * h;
-        }
     }
 //
 //
