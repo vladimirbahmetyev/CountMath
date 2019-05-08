@@ -6,15 +6,15 @@ namespace CountMath
     {
         public static void Main()
         {
-            
-            var baseGqf = new Gqf(MainFunc);
+            var baseIqf = new Iqf(MainFunc);
+
+            var baseGqf = new Gqf(MainFunc, baseIqf);
 //            var testVal = testGqf.CalcIntegral(1.5, 3.3);
 //            Console.WriteLine(testVal);
             
-            var baseIqf = new Iqf(MainFunc);
             
             var testCqf = new Cqf(baseIqf, baseGqf);
-            for (int i = 0; i < 20; i++)
+            for (var i = 0; i < 3; i++)
             {
                 var kek = testCqf.CalcIntegralGqf(1.5, 3.3, i + 1);
                 Console.WriteLine(kek);

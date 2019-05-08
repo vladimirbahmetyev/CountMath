@@ -6,11 +6,12 @@ namespace CountMath
     public class Gqf
     {
         private Func<double, double>[] defaultIntegralsFunction;
+        private Iqf _iqfHelper;
 
         private readonly Func<double, double> _mainFunction;
         private const int CountOfNodes = 3;
         
-        public Gqf(Func<double, double> mainFunction)
+        public Gqf(Func<double, double> mainFunction, Iqf iqfHelper)
         {
             defaultIntegralsFunction = new Func<double, double>[6];
             
@@ -35,6 +36,7 @@ namespace CountMath
                 (x * x * x * x * x + 1.60714 * x * x * x * x +2.62987 * x * x * x + 4.43791 * x * x + 7.98823 * x + 17.9735);
             
             _mainFunction = mainFunction;
+            _iqfHelper = iqfHelper;
         }
         
         public double CalcIntegral(double start, double end)
@@ -72,26 +74,9 @@ namespace CountMath
             var aCoeff = lupHelper.LesSol(bMoments);
 
             nodes = GetPolRoot(aCoeff);
-            
-            var aMatrix = new double[nodes.Length][];
-            
-            for (var i = 0; i < nodes.Length; i++)
-            {
-                aMatrix[i] = new double[nodes.Length];
-                for (var j = 0; j < nodes.Length; j++)
-                {
-                    aMatrix[i][j] = Math.Pow(nodes[j], i);
-                }
-            }
 
-            for (int i = 0; i < nodes.Length; i++)
-            {
-                bMoments[i] = moments[i];
-            }
-            
-            lupHelper = new Lup(aMatrix);
-            
-            var result = lupHelper.LesSol(bMoments);
+            var result = _iqfHelper.GetIqf(start, end, nodes);
+
             return result;
         }
         
