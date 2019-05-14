@@ -1,27 +1,28 @@
 using System;
 using System.Linq;
+using CountMath.LES;
 
-namespace CountMath
+namespace CountMath.Integrals
 {
     public class Iqf
     {
         private readonly Func<double, double> _mainFunction;
 
-        private Func<double, double>[] defaultIntegralsFunction;
+        private readonly Func<double, double>[] _defaultIntegralsFunction;
 
         public Iqf(Func<double, double> mainFunction)
         {
             var a = 1.5;
             var d = 1.0 / 3;
             
-            defaultIntegralsFunction = new Func<double, double>[3];
+            _defaultIntegralsFunction = new Func<double, double>[3];
             
-            defaultIntegralsFunction[0] = x =>
+            _defaultIntegralsFunction[0] = x =>
                 Math.Pow(x - a, 1-d) / (1-d);
 
-            defaultIntegralsFunction[1] = x =>
+            _defaultIntegralsFunction[1] = x =>
                 Math.Pow(x - a, 1-d) / (d-2) * (a -d * x + x) / (d-1);
-            defaultIntegralsFunction[2] = x =>
+            _defaultIntegralsFunction[2] = x =>
                 -Math.Pow(x - a, 1 - d) * (2 * a*a - 3 * (d - 1) * x + (d*d - 3*d + 2) * x * x) / (d - 3) /
                 (d - 2) / (d - 1);
 
@@ -64,6 +65,6 @@ namespace CountMath
         }
 
         private double CalcWeightFunctionMomentAnalytics(double start, double end, int numberOfMoment) =>
-            defaultIntegralsFunction[numberOfMoment](end) - defaultIntegralsFunction[numberOfMoment](start);
+            _defaultIntegralsFunction[numberOfMoment](end) - _defaultIntegralsFunction[numberOfMoment](start);
     }
 }

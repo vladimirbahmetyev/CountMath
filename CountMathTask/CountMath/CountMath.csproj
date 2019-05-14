@@ -43,15 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CQF.cs" />
-    <Compile Include="GaussZel.cs" />
-    <Compile Include="GQF.cs" />
-    <Compile Include="IQF.cs" />
-    <Compile Include="LUP.cs" />
-    <Compile Include="Newton.cs" />
+    <Compile Include="Integrals\CQF.cs" />
+    <Compile Include="Integrals\GQF.cs" />
+    <Compile Include="Integrals\IQF.cs" />
+    <Compile Include="Integrals\TypeOfCqf.cs" />
+    <Compile Include="LES\GaussZel.cs" />
+    <Compile Include="LES\LUP.cs" />
+    <Compile Include="LES\Yakobi.cs" />
+    <Compile Include="NLES\Newton.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Yakobi.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

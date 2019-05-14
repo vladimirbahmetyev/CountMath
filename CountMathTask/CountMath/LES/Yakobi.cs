@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
 
-namespace CountMath
+namespace CountMath.LES
 {
-    class Yakobi
+    internal class Yakobi
     {
         private readonly double[][] _matrix;
         private readonly double[] _b;

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace CountMath
+namespace CountMath.LES
 {
-    class Lup
+    internal class Lup
     {
         private readonly double[][] _l;
         private readonly double[][] _u;

@@ -1,70 +1,68 @@
 using System;
 using System.Linq;
-using static System.Double;
+using CountMath.LES;
 
-namespace CountMath
+namespace CountMath.Integrals
 {
     public class Cqf
     {
         private readonly Iqf _iqfHelper;
         private readonly Gqf _gqfHelper;
 
-        public Cqf(Iqf baseIqf, Gqf gqfHelper)
+        public Cqf(Func<double,double> mainFunction)
         {
-            _iqfHelper = baseIqf;
-            _gqfHelper = gqfHelper;
+            _iqfHelper = new Iqf(mainFunction);
+            _gqfHelper = new Gqf(mainFunction, _iqfHelper);
         }
-
-        public double CalcIntegralIqf(double start, double end, int parts)
+        
+        private double CalcIntegralCqf(double start, double end, int parts, TypeOfCqf typeOfCqf)
         {
             var integralValue = 0.0;
             
             var sizeOfStep = (end - start) / parts;
-            
+
             for (var i = 0; i < parts; i++)
             {
-                var nodes = new double[3];
+                double[] nodes;
+                switch (typeOfCqf)
+                {
+                    case TypeOfCqf.Iqf:
+                        nodes = new double[3];
                 
-                nodes[0] = start + sizeOfStep * i;
-                nodes[1] = start + sizeOfStep * (i + 1.0 / 2);
-                nodes[2] = start + sizeOfStep * (i + 1);
+                        nodes[0] = start + sizeOfStep * i;
+                        nodes[1] = start + sizeOfStep * (i + 1.0 / 2);
+                        nodes[2] = start + sizeOfStep * (i + 1);
 
-                integralValue += _iqfHelper.CalcIntegral(nodes[0], nodes[2], nodes); 
+                        integralValue += _iqfHelper.CalcIntegral(nodes[0], nodes[2], nodes); 
+                        break;
+                    case TypeOfCqf.Gqf:
+                        nodes = new double[2];
+                
+                        nodes[0] = start + sizeOfStep * i;
+                        nodes[1] = start + sizeOfStep * (i + 1);
+
+                integralValue += _gqfHelper.CalcIntegral(nodes[0], nodes[1]); 
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(typeOfCqf), typeOfCqf, null);
+                }
             }
             return integralValue;
         }
         
-        public double CalcIntegralGqf(double start, double end, int parts)
+        public double CalcIntegralWithAccuracy(double start, double end, double accuracy, TypeOfCqf typeOfCqf)
         {
-            var integralValue = 0.0;
-            
-            var sizeOfStep = (end - start) / parts;
-            
-            for (var i = 0; i < parts; i++)
-            {
-                var nodes = new double[2];
-                
-                nodes[0] = start + sizeOfStep * i;
-                nodes[1] = start + sizeOfStep * (i + 1);
-
-                integralValue += _gqfHelper.CalcIntegral(nodes[0], nodes[1]); 
-            }
-            return integralValue;
-        }
-
-        public double CalcIntegralIqfWithAccuracy(double start, double end, double accuracy)
-        {
-            var steps = CalcOptStepIqf(start, end, accuracy);
+            var steps = CalcOptStepCqf(start, end, accuracy, typeOfCqf);
             var arrayWithSteps = new[] {steps};
-            var integralValues = new[] {CalcIntegralIqf(start, end, steps)};
+            var integralValues = new[] {CalcIntegralCqf(start, end, steps, typeOfCqf)};
           
-            var currentAccuracy = MaxValue;
+            var currentAccuracy = Double.MaxValue;
             
             while (currentAccuracy > accuracy)
             {
                 steps *= 2;
 
-                var newIntegralValue = CalcIntegralIqf(start, end, steps);
+                var newIntegralValue = CalcIntegralCqf(start, end, steps, typeOfCqf);
 
                 integralValues = AddValueToArray(integralValues, newIntegralValue);
 
@@ -75,32 +73,12 @@ namespace CountMath
             
             return integralValues.Last();
         }
-        public double CalcIntegralGqfWithAccuracy(double start, double end, double accuracy)
-        {
-            var steps = CalcOptStepGqf(start,end,accuracy);
-            var arrayWithSteps = new[] {steps};
-            var integralValues = new[] {CalcIntegralGqf(start, end, steps)};
-
-            var currentAccuracy = MaxValue;
-            
-            while (currentAccuracy > accuracy)
-            {
-                steps *= 2;
-
-                var newIntegralValue = CalcIntegralGqf(start, end, steps);
-                
-                integralValues = AddValueToArray(integralValues, newIntegralValue);
-
-                arrayWithSteps = AddValueToArray(arrayWithSteps, steps);
-                
-                currentAccuracy = CalcAccuracyRichardson(integralValues, arrayWithSteps, start, end);
-            }
-            
-            return integralValues.Last();
-        }
         
         private double CalcAccuracyRichardson(double[] integralsValues, int[] steps, double start, double end)
         {
+
+            if (integralsValues.Length < 3)
+                return Math.Abs(integralsValues.Last() - integralsValues.First());
             
             var aitkinConstant = CalcAitkinConstant(integralsValues, steps);
             var lesRichardson = new double[integralsValues.Length][];
@@ -143,9 +121,6 @@ namespace CountMath
 
         private int CalcAitkinConstant(double[] integralsResult, int[] steps)
         {
-            if (integralsResult.Length < 3)
-                return 1;
-            
             var sh1 = integralsResult[0];
             var sh2 = integralsResult[1];
             var sh3 = integralsResult[2];
@@ -158,17 +133,9 @@ namespace CountMath
         }
         
         //Default grid with 1, 2 end 4 steps
-        public int CalcOptStepIqf(double start, double end, double accuracy)
+        private int CalcOptStepCqf(double start, double end, double accuracy, TypeOfCqf typeOfCqf)
         {
-            var defaultIntegralsValue = new[] {CalcIntegralIqf(start, end, 1), CalcIntegralIqf(start, end, 2), CalcIntegralIqf(start, end, 4)};
-            var aitkinConstant = CalcAitkinConstant(defaultIntegralsValue, new []{1,2,4});
-            var defaultStepsRelation = 2;
-            var optimalStepSize = 1.0/2 * Math.Pow(accuracy * (1 - Math.Pow(defaultStepsRelation, -aitkinConstant)) / Math.Abs(defaultIntegralsValue[2] - defaultIntegralsValue[1]), (double)1 / aitkinConstant);
-            return (int)(1.0 / optimalStepSize);
-        } 
-        public int CalcOptStepGqf(double start, double end, double accuracy)
-        {
-            var defaultIntegralsValue = new[] {CalcIntegralGqf(start, end, 1), CalcIntegralGqf(start, end, 2), CalcIntegralGqf(start, end, 4)};
+            var defaultIntegralsValue = new[] {CalcIntegralCqf(start, end, 1, typeOfCqf), CalcIntegralCqf(start, end, 2, typeOfCqf), CalcIntegralCqf(start, end, 4, typeOfCqf)};
             var aitkinConstant = CalcAitkinConstant(defaultIntegralsValue, new []{1,2,4});
             var defaultStepsRelation = 2;
             var optimalStepSize = 1.0/2 * Math.Pow(accuracy * (1 - Math.Pow(defaultStepsRelation, -aitkinConstant)) / Math.Abs(defaultIntegralsValue[2] - defaultIntegralsValue[1]), (double)1 / aitkinConstant);
