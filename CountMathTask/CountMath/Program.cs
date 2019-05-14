@@ -14,15 +14,14 @@ namespace CountMath
             
             
             var testCqf = new Cqf(baseIqf, baseGqf);
-            for (var i = 0; i < 3; i++)
-            {
-                var kek = testCqf.CalcIntegralGqf(1.5, 3.3, i + 1);
-                Console.WriteLine(kek);
-            }
-
+            var testNewton = testCqf.CalcIntegralIqfWithAccuracy(1.5, 3.3, 1e-6);
+            var testGauss= testCqf.CalcIntegralGqfWithAccuracy(1.5, 3.3, 1e-6);
+            
+            Console.WriteLine(testNewton);
+            Console.WriteLine(testGauss);
 //            var optimalStepsCount = testCqf.CalcOptStep(1.5, 2.4, 1e-6);
 //            var testRich = testCqf.CalcIntegralWithAccuracy(1.5, 3.3, 1e-6, optimalStepsCount);
-//            
+            
 //            Console.WriteLine(testRich);
         }
 

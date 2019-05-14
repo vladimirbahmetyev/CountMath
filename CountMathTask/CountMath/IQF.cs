@@ -11,16 +11,19 @@ namespace CountMath
 
         public Iqf(Func<double, double> mainFunction)
         {
+            var a = 1.5;
+            var d = 1.0 / 3;
+            
             defaultIntegralsFunction = new Func<double, double>[3];
             
             defaultIntegralsFunction[0] = x =>
-                1.5 * Math.Pow(x - 1.5, 2.0 / 3);
-            
-            defaultIntegralsFunction[1] = x =>
-                0.6 * Math.Pow(x - 1.5, 2.0 / 3)*(x + 2.25);
+                Math.Pow(x - a, 1-d) / (1-d);
 
+            defaultIntegralsFunction[1] = x =>
+                Math.Pow(x - a, 1-d) / (d-2) * (a -d * x + x) / (d-1);
             defaultIntegralsFunction[2] = x =>
-                0.375 * Math.Pow(x - 1.5, 2.0 / 3)*(x * x + 1.8 * x + 4.05);
+                -Math.Pow(x - a, 1 - d) * (2 * a*a - 3 * (d - 1) * x + (d*d - 3*d + 2) * x * x) / (d - 3) /
+                (d - 2) / (d - 1);
 
             _mainFunction = mainFunction;
         }

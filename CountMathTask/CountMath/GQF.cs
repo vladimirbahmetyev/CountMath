@@ -13,29 +13,40 @@ namespace CountMath
         
         public Gqf(Func<double, double> mainFunction, Iqf iqfHelper)
         {
+            var d = 1.0 / 3;
+            var a = 1.5;
+            
             defaultIntegralsFunction = new Func<double, double>[6];
             
             defaultIntegralsFunction[0] = x =>
-                1.5 * Math.Pow(x - 1.5, 2.0 / 3);
-            
+                Math.Pow(x - a, 1-d) / (1-d);
+
             defaultIntegralsFunction[1] = x =>
-                0.6 * Math.Pow(x - 1.5, 2.0 / 3)*(x + 2.25);
-
+                Math.Pow(x - a, 1-d) / (d-2) * (a -d * x + x) / (d-1);
             defaultIntegralsFunction[2] = x =>
-                0.375 * Math.Pow(x - 1.5, 2.0 / 3)*(x * x + 1.8 * x + 4.05);
-            
+                -Math.Pow(x - a, 1 - d) * (2 * a*a - 3 * (d - 1) * x + (d*d - 3*d + 2) * x * x) / (d - 3) /
+                (d - 2) / (d - 1);
             defaultIntegralsFunction[3] = x =>
-                0.2727 * Math.Pow(x - 1.5, 2.0 / 3)*(x*x*x + 1.6875 * x * x + 3.0375 * x + 6.834438);
-
+                Math.Pow(x - a, 1 - d) * (6 * Math.Pow(a, 3) - 6 * Math.Pow(a, 2) * (d - 1) * x +
+                                              3 * a * (d * d - 3 * d + 2) * Math.Pow(x, 2) -
+                                              (d * d * d - 6 * d * d + 11*d - 6) * Math.Pow(x, 3))/(d-4)/(d-3)/(d-2)/(d-1);
             defaultIntegralsFunction[4] = x =>
-                0.214286 * Math.Pow(x - 1.5, 2.0 / 3) *
-                (x * x * x * x + 1.63633 * x * x * x + 2.76136 * x * x + 4.97045 * x + 11.1835);
-
+                -(Math.Pow(x - a, 1 - d) * (24 * Math.Pow(a, 4) - 24 * Math.Pow(a, 3) * (d - 1) * x +
+                                            12 * a * a * (d * d - 3*d + 2) * x * x -
+                                            4 * a * (d * d * d - 6 * d * d + 11 * d - 6) * x * x * x +
+                                            (d * d * d * d - 10 * d * d * d + 35 * d * d - 50 * d + 24) *
+                                            Math.Pow(x, 4))) / (d - 5) / (d - 4) / (d - 3) / (d - 2) / (d - 1);
             defaultIntegralsFunction[5] = x =>
-                0.176471 * Math.Pow(x - 1.5, 2.0 / 3) * 
-                (x * x * x * x * x + 1.60714 * x * x * x * x +2.62987 * x * x * x + 4.43791 * x * x + 7.98823 * x + 17.9735);
-            
-            _mainFunction = mainFunction;
+                Math.Pow(x - a, 1 - d) * (120 * Math.Pow(a, 5) - 120 * Math.Pow(a, 4) * (d - 1) * x +
+                                                 60 * Math.Pow(a, 3) * (d * d - 3 * d + 2) * x * x -
+                                                 20 * a * a * (d * d * d - 6 * d * d + 11 * d - 6) * x * x * x + 5 *
+                                                 a *
+                                                 (Math.Pow(d, 4) - 10 * d * d * d + 35 * d * d - 50 * d + 24) *
+                                                 Math.Pow(x, 4) -
+                                          (Math.Pow(d, 5) - 15 * Math.Pow(d, 4) + 85 * d * d * d - 225 * d * d +
+                                           274 * d - 120) *
+                                          Math.Pow(x, 5)) / (d - 6)/(d - 5) / (d - 4) / (d - 3) / (d - 2) / (d - 1);
+                _mainFunction = mainFunction;
             _iqfHelper = iqfHelper;
         }
         
